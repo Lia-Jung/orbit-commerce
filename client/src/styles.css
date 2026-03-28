@@ -430,16 +430,62 @@ button {
   line-height: 1.7;
 }
 
-.contact-actions {
+.contact-form {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 
-.contact-actions .ghost {
+.field label {
+  display: block;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 6px;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 10px 12px;
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  background: transparent;
+  font-size: 0.95rem;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.consent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.contact-form .primary {
+  width: 100%;
+  box-shadow: none;
+}
+
+.form-success {
+  color: #a7f3d0;
+  font-size: 0.9rem;
+}
+
+.form-error {
+  color: #fca5a5;
+  font-size: 0.9rem;
 }
 
 .footer {
@@ -496,6 +542,10 @@ button {
   }
 
   .contact-card {
+    grid-template-columns: 1fr;
+  }
+
+  .field-row {
     grid-template-columns: 1fr;
   }
 

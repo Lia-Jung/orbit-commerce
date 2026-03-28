@@ -78,6 +78,59 @@ const faqs = [
 ];
 
 export default function App() {
+  const [formState, setFormState] = React.useState({
+    name: '',
+    email: '',
+    company: '',
+    phone: '',
+    message: '',
+    consent: false
+  });
+  const [formStatus, setFormStatus] = React.useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [formError, setFormError] = React.useState('');
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value, type } = event.target;
+    if (type === 'checkbox') {
+      const target = event.target as HTMLInputElement;
+      setFormState((prev) => ({ ...prev, [name]: target.checked }));
+      return;
+    }
+    setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError('');
+    setFormStatus('loading');
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formState)
+      });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || '문의 전송에 실패했습니다.');
+      }
+
+      setFormStatus('success');
+      setFormState({
+        name: '',
+        email: '',
+        company: '',
+        phone: '',
+        message: '',
+        consent: false
+      });
+    } catch (error) {
+      setFormStatus('error');
+      setFormError(error instanceof Error ? error.message : '문제가 발생했습니다.');
+    }
+  };
+
   return (
     <div className="page">
       <header className="hero">
@@ -274,10 +327,60 @@ export default function App() {
               간단한 소개와 목표를 남겨주시면 2영업일 내에 회신드립니다.
             </p>
           </div>
-          <div className="contact-actions">
-            <button className="primary">파트너 문의하기</button>
-            <button className="ghost">채용 정보 보기</button>
-          </div>
+          <form className="contact-form" onSubmit={handleSubmit}>
+            <div className="field-row">
+              <div className="field">
+                <label htmlFor="name">이름 *</label>
+                <input id="name" name="name" value={formState.name} onChange={handleChange} required />
+              </div>
+              <div className="field">
+                <label htmlFor="email">이메일 *</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formState.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+            <div className="field-row">
+              <div className="field">
+                <label htmlFor="company">회사명</label>
+                <input id="company" name="company" value={formState.company} onChange={handleChange} />
+              </div>
+              <div className="field">
+                <label htmlFor="phone">연락처</label>
+                <input id="phone" name="phone" value={formState.phone} onChange={handleChange} />
+              </div>
+            </div>
+            <div className="field">
+              <label htmlFor="message">문의 내용 *</label>
+              <textarea
+                id="message"
+                name="message"
+                rows={4}
+                value={formState.message}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <label className="consent">
+              <input
+                type="checkbox"
+                name="consent"
+                checked={formState.consent}
+                onChange={handleChange}
+              />
+              개인정보 처리방침에 동의합니다.
+            </label>
+            <button className="primary" type="submit" disabled={formStatus === 'loading'}>
+              {formStatus === 'loading' ? '전송 중...' : '파트너 문의하기'}
+            </button>
+            {formStatus === 'success' && <p className="form-success">문의가 접수되었습니다. 곧 연락드릴게요.</p>}
+            {formStatus === 'error' && <p className="form-error">{formError}</p>}
+          </form>
         </div>
       </section>
 
