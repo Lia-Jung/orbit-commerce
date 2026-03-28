@@ -1,3 +1,7 @@
+export const config = {
+  runtime: 'nodejs'
+};
+
 type ContactPayload = {
   name: string;
   email: string;
@@ -27,23 +31,36 @@ export default async function handler(req: any, res: any) {
     return;
   }
 
-  const insertResponse = await fetch(`${supabaseUrl}/rest/v1/inquiries`, {
-    method: 'POST',
-    headers: {
-      apikey: supabaseServiceRoleKey,
-      Authorization: `Bearer ${supabaseServiceRoleKey}`,
-      'Content-Type': 'application/json',
-      Prefer: 'return=representation'
-    },
-    body: JSON.stringify({
-      name: payload.name,
-      email: payload.email,
-      company: payload.company || null,
-      phone: payload.phone || null,
-      message: payload.message,
-      consent: Boolean(payload.consent)
-    })
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8000);
+
+  let insertResponse: Response;
+  try {
+    insertResponse = await fetch(`${supabaseUrl}/rest/v1/inquiries`, {
+      method: 'POST',
+      headers: {
+        apikey: supabaseServiceRoleKey,
+        Authorization: `Bearer ${supabaseServiceRoleKey}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=representation'
+      },
+      body: JSON.stringify({
+        name: payload.name,
+        email: payload.email,
+        company: payload.company || null,
+        phone: payload.phone || null,
+        message: payload.message,
+        consent: Boolean(payload.consent)
+      }),
+      signal: controller.signal
+    });
+  } catch (error) {
+    clearTimeout(timeout);
+    res.status(504).json({ error: 'Upstream timeout', detail: error instanceof Error ? error.message : 'fetch failed' });
+    return;
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!insertResponse.ok) {
     const errorBody = await insertResponse.text();
