@@ -7,29 +7,24 @@ type ContactPayload = {
   consent?: boolean;
 };
 
-const allowedMethods = ['POST'];
-
-export default async function handler(request: Request): Promise<Response> {
-  if (!allowedMethods.includes(request.method)) {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
+export default async function handler(req: any, res: any) {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
-    return new Response(JSON.stringify({ error: 'Server not configured' }), { status: 500 });
+    res.status(500).json({ error: 'Server not configured' });
+    return;
   }
 
-  let payload: ContactPayload;
-  try {
-    payload = (await request.json()) as ContactPayload;
-  } catch {
-    return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400 });
-  }
-
+  const payload = req.body as ContactPayload;
   if (!payload?.name || !payload?.email || !payload?.message) {
-    return new Response(JSON.stringify({ error: 'Required fields are missing' }), { status: 400 });
+    res.status(400).json({ error: 'Required fields are missing' });
+    return;
   }
 
   const insertResponse = await fetch(`${supabaseUrl}/rest/v1/inquiries`, {
@@ -52,11 +47,9 @@ export default async function handler(request: Request): Promise<Response> {
 
   if (!insertResponse.ok) {
     const errorBody = await insertResponse.text();
-    return new Response(JSON.stringify({ error: 'Insert failed', detail: errorBody }), { status: 500 });
+    res.status(500).json({ error: 'Insert failed', detail: errorBody });
+    return;
   }
 
-  return new Response(JSON.stringify({ ok: true }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' }
-  });
+  res.status(200).json({ ok: true });
 }
