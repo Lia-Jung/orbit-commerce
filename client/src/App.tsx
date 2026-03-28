@@ -1,4 +1,6 @@
-﻿const stats = [
+﻿import React from 'react';
+
+const stats = [
   { label: '누적 거래액', value: '2,900억+' },
   { label: '연간 재구매율', value: '61%' },
   { label: '운영 브랜드', value: '18개' },
@@ -400,3 +402,4 @@ export default function App() {
     </div>
   );
 }
+
